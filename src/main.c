@@ -131,12 +131,12 @@ int main(int argc, char** argv) {
         solutionsCache[0] = 0;
     }
 
-    int solutionsCalculated = 0;
-    const int targetSolution = strtol(argv[1], NULL, 10);
+    
 
     if (worldRank == 0)
     {
-        int idleProcesses = worldRank - 1;
+	    int solutionsCalculated = 0, idleProcesses = worldRank - 1;
+        const int targetSolution = strtol(argv[1], NULL, 10);
 
         // Distribute tasks
         while (idleProcesses > 1)
@@ -169,16 +169,32 @@ int main(int argc, char** argv) {
                 if (solutionsCalculated < targetSolution)
                 {
                     const int toCalculate = solutionsCalculated + 1;
-	                MPI_Send(&toCalculate, 1, MPI_INT, idleProcesses, MPI_ANY_TAG, MPI_COMM_WORLD);
+	                MPI_Send(&toCalculate, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD);
                 }
             }
 	    }
+
+        // Broadcast to other processes that algorithm finished successfully
+        int message = MPI_SUCCESS;
+        MPI_Bcast(&message, 1, MPI_INT, 0, MPI_COMM_WORLD);
     }
     else
     {
-	    while (solutionsCalculated < targetSolution)
+        int exit = 0, message;
+    	MPI_Status status;
+
+	    while (!exit)
 	    {
-		    
+		    MPI_Recv(&message, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+            // If it was a broadcast to finish, then exit
+            if (message == MPI_SUCCESS)
+            {
+	            exit = 1;
+                continue;
+            }
+
+            
 	    }
     }
 
