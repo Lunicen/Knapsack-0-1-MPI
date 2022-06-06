@@ -127,11 +127,12 @@ int main(int argc, char** argv) {
 	        MPI_Abort(MPI_COMM_WORLD, 3);
 	    }
 
-        // When there is no space in knapsack, it cannot fit anything...
-        solutionsCache[0] = 0;
+        // Mark those capacities that cannot fit any item
+        for (int i = 0; i < data[0]; ++i)
+        {
+	        solutionsCache[i] = 0;
+        }
     }
-
-    
 
     if (worldRank == 0)
     {
