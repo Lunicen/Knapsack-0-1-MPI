@@ -48,26 +48,39 @@ int CheckArgumentCorrectness(char* knapsackCapacity, char* filename, char* eleme
     return 0;
 }
 
-void CheckForErrors(const int* worldSize)
+int CheckForErrors(const int* worldSize)
 {
     const int minWorldSize = 2;
 
 	if (*worldSize < minWorldSize)
     {
 		fprintf(stderr, "World size must be no less than %d, given %d\n", minWorldSize, *worldSize);
-		MPI_Abort(MPI_COMM_WORLD, 1);
+        return 1;
 	}
+
+    return 0;
 }
 
-int TryToSolve(unsigned long* cache, const unsigned long* capacity)
+unsigned long* LoadDataFromFile(char* filename, const int amount)
 {
-    // On capacity equal 0 we cannot pack anything - obvious scenario
-	if (capacity == 0)
-	{
-		return 0;
-	}
+    MPI_File file;
+    const int code = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
+    if (code != 0) {
+        fprintf(stderr, "Couldn't open data file: %s\n", filename);
+        return NULL;
+    }
 
+	unsigned long* data = malloc(amount * sizeof(unsigned long));
+    if (data == NULL)
+    {
+	    fprintf(stderr, "Failed to allocate memory for calculating process!\n");
+        return NULL;
+    }
 
+    MPI_File_read_all(file, data, amount, MPI_UNSIGNED_LONG, MPI_STATUS_IGNORE);
+    MPI_File_close(&file);
+
+    return data;
 }
 
 int main(int argc, char** argv) {
@@ -88,42 +101,38 @@ int main(int argc, char** argv) {
 
     MPI_Get_processor_name(processorName, &nameLen);
 
-    CheckForErrors(&worldSize);
+    if (CheckForErrors(&worldSize) != 0)
+    {
+		MPI_Abort(MPI_COMM_WORLD, 1);
+    }
 
     // Print off a hello world message
     printf("Process initialized successfully on %s with rank %d out of %d processors\n",
            processorName, worldRank, worldSize);
 
-    char* pEnd;
-    unsigned long* solutionsCache = malloc(strtol(argv[3], &pEnd, 10) * sizeof(unsigned long));
-    if (solutionsCache == NULL)
+    const int elementsCount = strtol(argv[3], NULL, 10);
+    unsigned long* data = LoadDataFromFile(argv[2], elementsCount);
+    if (data == NULL)
     {
-	    fprintf(stderr, "Failed to allocate memory for calculating process!\n");
-        MPI_Abort(MPI_COMM_WORLD, 2);
+	    MPI_Abort(MPI_COMM_WORLD, 2);
     }
 
-    MPI_File data;
-    const int fileCode = MPI_File_open(MPI_COMM_WORLD, argv[2], MPI_MODE_RDONLY, MPI_INFO_NULL, &data);
-    if (fileCode) {
-        fprintf(stderr, "Couldn't open data file: %s\n", argv[2]);
-        MPI_Abort(MPI_COMM_WORLD, 3);
-    }
-
-    const unsigned long dataElements = strtol(argv[3], &pEnd, 10) * 2;
-    unsigned long* dataValues = malloc(dataElements * sizeof(unsigned long));
-    if (dataValues == NULL)
+    unsigned long* solutionsCache = NULL;
+    if (worldRank == 0)
     {
-	    fprintf(stderr, "Failed to allocate memory for calculating process!\n");
-        MPI_Abort(MPI_COMM_WORLD, 2);
+	    solutionsCache = malloc(strtol(argv[3], NULL, 10) * sizeof(unsigned long));
+	    if (solutionsCache == NULL)
+	    {
+		    fprintf(stderr, "Failed to allocate memory for calculating process!\n");
+	        MPI_Abort(MPI_COMM_WORLD, 3);
+	    }
     }
 
-    MPI_File_read_all(data, dataValues, (int)dataElements, MPI_UNSIGNED_LONG, MPI_STATUS_IGNORE);
-    
-
-	
-
-    free(dataValues);
-    free(solutionsCache);
+    free(data);
+    if (solutionsCache != NULL)
+    {
+	    free(solutionsCache);
+    }
 
     // Finalize the MPI environment.
     MPI_Finalize();
