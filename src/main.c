@@ -117,6 +117,7 @@ int main(int argc, char** argv) {
 	    MPI_Abort(MPI_COMM_WORLD, 2);
     }
 
+    int solutionsCalculated = 0;
     int* solutionsCache = NULL;
     if (worldRank == 0)
     {
@@ -127,23 +128,31 @@ int main(int argc, char** argv) {
 	        MPI_Abort(MPI_COMM_WORLD, 3);
 	    }
 
-        // Mark those capacities that cannot fit any item
-        for (int i = 0; i < data[0]; ++i)
+        // Mark those capacities that cannot fit any item and unknown values
+        for (int i = 0; i < elementsCount; ++i)
         {
-	        solutionsCache[i] = 0;
+            if (i < data[0])
+            {
+            	solutionsCache[i] = 0;
+                ++solutionsCalculated;
+            }
+            else
+            {
+	            solutionsCache[i] = -1;
+            }
         }
     }
 
     if (worldRank == 0)
     {
-	    int solutionsCalculated = 0, idleProcesses = worldRank - 1;
+	    int idleProcesses = worldRank - 1;
         const int targetSolution = strtol(argv[1], NULL, 10);
 
         // Distribute tasks
         while (idleProcesses > 1)
         {
             const int toCalculate = solutionsCalculated + 1;
-            MPI_Send(&toCalculate, 1, MPI_INT, idleProcesses, MPI_ANY_TAG, MPI_COMM_WORLD);
+            MPI_Send(&toCalculate, 1, MPI_INT, idleProcesses, 1, MPI_COMM_WORLD);
 
             --idleProcesses;
         }
@@ -158,7 +167,17 @@ int main(int argc, char** argv) {
             // Requesting cached function
             if (status.MPI_TAG < solutionsCalculated)
             {
-	            MPI_Send(&solutionsCache[status.MPI_TAG], 1, MPI_INT, idleProcesses, MPI_ANY_TAG, MPI_COMM_WORLD);
+                const int functionValue = solutionsCache[status.MPI_TAG];
+
+                if (functionValue != -1)
+                {
+	                MPI_Send(&functionValue, 1, MPI_INT, idleProcesses, MPI_SUCCESS, MPI_COMM_WORLD);
+                }
+                else
+                {
+                    // Postpone process if the requested value isn't calculated yet (-1 equals unknown)
+	                MPI_Send(&functionValue, 1, MPI_INT, idleProcesses, 1, MPI_COMM_WORLD);
+                }
             }
 
             // Finished calculations
@@ -181,21 +200,44 @@ int main(int argc, char** argv) {
     }
     else
     {
-        int exit = 0, message;
+        int exit = 0, target;
     	MPI_Status status;
 
 	    while (!exit)
 	    {
-		    MPI_Recv(&message, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		    MPI_Recv(&target, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
             // If it was a broadcast to finish, then exit
-            if (message == MPI_SUCCESS)
+            if (target == MPI_SUCCESS)
             {
 	            exit = 1;
                 continue;
             }
 
-            
+            int max = 0;
+            for (int i = 0; i < elementsCount && i < target; ++i)
+            {
+                const int weight = data[i * 2];  // NOLINT(bugprone-implicit-widening-of-multiplication-result)
+                const int value = data[i * 2 + 1];
+                int functionValue = target - weight;
+
+                // Keep requesting the value until it's sent (tag 1 = value is not calculated yet)
+	            int statusTag = 1;
+                while (statusTag != MPI_SUCCESS)
+                {
+                    // f(w - w_i)
+	                MPI_Send(&functionValue, 1, MPI_INT, 0, functionValue, MPI_COMM_WORLD);
+
+                    MPI_Recv(&functionValue, 1, MPI_INT, 0, functionValue, MPI_COMM_WORLD, &status);
+                    statusTag = status.MPI_TAG;
+                }
+
+                const int currentValue = functionValue + value;
+                max = (currentValue > max) ? currentValue : max;
+            }
+
+            // Finalize calculations
+            MPI_Send(&max, 1, MPI_INT, 0, target, MPI_COMM_WORLD);
 	    }
     }
 
