@@ -7,7 +7,7 @@ int CheckArgumentCorrectness(char* knapsackCapacity, char* filename, char* eleme
 {
 	if (knapsackCapacity == NULL)
     {
-	    fprintf(stderr, "No arguments given!\n");
+	    fprintf(stderr, "No arguments given! Expected: <knapsack capacity> <data filename> <single elements amount in the data>\n");
 		return 1;
     }
 
@@ -61,8 +61,10 @@ int CheckForErrors(const int* worldSize)
     return 0;
 }
 
-int* LoadDataFromFile(char* filename, const int amount)
+int* LoadDataFromFile(char* filename, int amount)
 {
+    amount *= 2;
+
     MPI_File file;
     const int code = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
     if (code != 0) {
@@ -101,7 +103,6 @@ int main(int argc, char** argv) {
 
     MPI_Get_processor_name(processorName, &nameLen);
 
-
     if (CheckForErrors(&worldSize) != 0)
     {
 		MPI_Abort(MPI_COMM_WORLD, 1);
@@ -110,6 +111,7 @@ int main(int argc, char** argv) {
     printf("%s CPU started with rank %d out of %d processors\n",
            processorName, worldRank, worldSize);
 
+
     const int elementsCount = strtol(argv[3], NULL, 10);
     int* data = LoadDataFromFile(argv[2], elementsCount);
     if (data == NULL)
@@ -117,11 +119,15 @@ int main(int argc, char** argv) {
 	    MPI_Abort(MPI_COMM_WORLD, 2);
     }
 
+
     int solutionsCalculated = 0;
     int* solutionsCache = NULL;
+    const int targetSolution = strtol(argv[1], NULL, 10);
+
     if (worldRank == 0)
     {
-	    solutionsCache = malloc(strtol(argv[3], NULL, 10) * sizeof(int));
+	    solutionsCache = malloc((targetSolution + 1) * sizeof(int));
+
 	    if (solutionsCache == NULL)
 	    {
 		    fprintf(stderr, "Failed to allocate memory for calculating process!\n");
@@ -129,7 +135,7 @@ int main(int argc, char** argv) {
 	    }
 
         // Mark those capacities that cannot fit any item and unknown values
-        for (int i = 0; i < elementsCount; ++i)
+        for (int i = 0; i < targetSolution + 1; ++i)
         {
             if (i < data[0])
             {
@@ -141,28 +147,20 @@ int main(int argc, char** argv) {
 	            solutionsCache[i] = -1;
             }
         }
-    }
-
-    if (worldRank == 0)
-    {
-	    int idleProcesses = worldRank - 1;
-        const int targetSolution = strtol(argv[1], NULL, 10);
 
         // Distribute tasks
-        while (idleProcesses > 1)
+        for (int i = worldSize - 1; i > 0; --i)
         {
-            const int toCalculate = solutionsCalculated + 1;
-            MPI_Send(&toCalculate, 1, MPI_INT, idleProcesses, 1, MPI_COMM_WORLD);
+	        const int toCalculate = solutionsCalculated;
+            MPI_Send(&toCalculate, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
 
-            printf("[%d -> %d] The task %d sent.\n", worldRank, idleProcesses, toCalculate);
-
-            --idleProcesses;
+            printf("[%d -> %d] The task %d sent.\n", worldRank, i, toCalculate);
         }
 
         int result;
         MPI_Status status;
 
-	    while (solutionsCalculated < targetSolution)
+        while (solutionsCalculated <= targetSolution)
 	    {
             MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             printf("[%d -> %d] Received %d.\n", status.MPI_SOURCE, worldRank, result);
@@ -190,41 +188,44 @@ int main(int argc, char** argv) {
             {
 	            solutionsCache[status.MPI_TAG] = result;
 	            ++solutionsCalculated;
+
 	            printf("f(%d) = %d added to cache!\n", status.MPI_TAG, result);
 
-	            if (solutionsCalculated < targetSolution)
+	            if (solutionsCalculated <= targetSolution)
                 {
-                    const int toCalculate = solutionsCalculated + 1;
-	                MPI_Send(&toCalculate, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD);
+                    const int toCalculate = solutionsCalculated;
+	                MPI_Send(&toCalculate, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
                     printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, toCalculate);
                 }
             }
 	    }
 
-        // Broadcast to other processes that algorithm finished successfully
-        int message = MPI_SUCCESS;
-        MPI_Bcast(&message, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        printf("[%d -> BROADCAST] Shutting down request sent.\n", worldRank);
+        // Send to other processes message that algorithm has finished successfully
+        for (int i = 1; i < worldSize; ++i)
+		{
+			const int shutdown = MPI_SUCCESS;
+			MPI_Send(&shutdown, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+        }
     }
     else
     {
         int exit = 0, target;
     	MPI_Status status;
 
-	    while (!exit)
+        while (!exit)
 	    {
 		    MPI_Recv(&target, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-            // If it was a broadcast to finish, then exit
+            // If it was a message to finish, then exit
             if (target == MPI_SUCCESS)
             {
-                printf("[%d -> %d] Shutting down...\n", status.MPI_SOURCE, worldRank);
+                printf("[%d --> %d] Shutting down...\n", status.MPI_SOURCE, worldRank);
 	            exit = 1;
                 continue;
             }
 
             int max = 0;
-            for (int i = 0; i < elementsCount && i < target; ++i)
+            for (int i = 0; i < elementsCount; ++i)
             {
                 const int weight = data[i * 2];  // NOLINT(bugprone-implicit-widening-of-multiplication-result)
                 const int value = data[i * 2 + 1];
@@ -237,7 +238,7 @@ int main(int argc, char** argv) {
                     // f(w - w_i)
 	                MPI_Send(&functionValue, 1, MPI_INT, 0, functionValue, MPI_COMM_WORLD);
 
-                    MPI_Recv(&functionValue, 1, MPI_INT, 0, functionValue, MPI_COMM_WORLD, &status);
+                    MPI_Recv(&functionValue, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     statusTag = status.MPI_TAG;
                 }
 
@@ -245,13 +246,14 @@ int main(int argc, char** argv) {
                 max = (currentValue > max) ? currentValue : max;
             }
 
-            // Finalize calculations
-            printf("[%d -> %d] Shutting down...\n", status.MPI_SOURCE, worldRank);
             MPI_Send(&max, 1, MPI_INT, 0, target, MPI_COMM_WORLD);
-	    }
+        }
     }
 
-    printf("For the %s knapsack capacity the result is %d!\n", argv[1], solutionsCache[elementsCount - 1]);
+    if (worldRank == 0)
+    {
+	    printf("For the %s knapsack capacity the result is %d!\n", argv[1], solutionsCache[targetSolution]);
+    }
 
     free(data);
     if (solutionsCache != NULL)

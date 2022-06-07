@@ -5,25 +5,25 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommand>$(I_MPI_ONEAPI_ROOT)\bin\mpiexec.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>$(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-n 2 $(TargetPath) 5 KSP_testCase.bin 3</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PATH=$(I_MPI_ONEAPI_ROOT)\bin\$(ConfigurationName);$(I_MPI_ONEAPI_ROOT)\libfabric\bin;$(PATH)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommand>$(I_MPI_ONEAPI_ROOT)\bin\mpiexec.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>$(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-n 2 $(TargetPath) 5 KSP_testCase.bin 3</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PATH=$(I_MPI_ONEAPI_ROOT)\bin\$(ConfigurationName);$(I_MPI_ONEAPI_ROOT)\libfabric\bin;$(PATH)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>$(I_MPI_ONEAPI_ROOT)\bin\mpiexec.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>$(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-n 2 $(TargetPath) 5 KSP_testCase.bin 3</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PATH=$(I_MPI_ONEAPI_ROOT)\bin\$(ConfigurationName);$(I_MPI_ONEAPI_ROOT)\libfabric\bin;$(PATH)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>$(I_MPI_ONEAPI_ROOT)\bin\mpiexec.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>$(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-n 2 $(TargetPath) 5 KSP_testCase.bin 3</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PATH=$(I_MPI_ONEAPI_ROOT)\bin\$(ConfigurationName);$(I_MPI_ONEAPI_ROOT)\libfabric\bin;$(PATH)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
