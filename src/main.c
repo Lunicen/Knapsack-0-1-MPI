@@ -144,9 +144,10 @@ int main(int argc, char** argv) {
         }
 
         // Distribute tasks
-        for (int i = worldSize - 1; i > 0; --i)
+
+        for (int i = 1; i < worldSize; ++i)
         {
-	        const int toCalculate = solutionsCalculated;
+	        const int toCalculate = solutionsCalculated + (i - 1);
             MPI_Send(&toCalculate, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
 
             printf("[%d -> %d] The task %d sent.\n", worldRank, i, toCalculate);
