@@ -216,13 +216,13 @@ int main(int argc, char** argv) {
 	            solutionsCache[status.MPI_TAG] = request;
 	            ++solutionsCached;
 
-	            printf("[ root ] f(%d) = %d added to cache!\n", status.MPI_TAG, request);
+                const int nextCalculation = solutionsCached + worldSize - 2;
+                printf("[ root ] f(%d) = %d added to cache!\n", status.MPI_TAG, request);
 
-	            if (solutionsCached <= targetSolution)
+	            if (nextCalculation <= targetSolution)
                 {
-                    const int toCalculate = solutionsCached;
-	                MPI_Send(&toCalculate, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
-                    printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, toCalculate);
+	                MPI_Send(&nextCalculation, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
+                    printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, nextCalculation);
                 }
                 else
                 {
@@ -287,7 +287,6 @@ int main(int argc, char** argv) {
                 const int currentValue = functionValue + value;
                 max = (currentValue > max) ? currentValue : max;
             }
-
             MPI_Send(&max, 1, MPI_INT, 0, target, MPI_COMM_WORLD);
         }
     }
