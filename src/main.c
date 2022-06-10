@@ -101,21 +101,6 @@ int* LoadDataFromFile(char* filename, unsigned long long* amount)
     return data;
 }
 
-void sleep_ms(int milliseconds) { // cross-platform sleep function
-	#ifdef WIN32
-	    Sleep(milliseconds);
-	#elif _POSIX_C_SOURCE >= 199309L
-	    struct timespec ts;
-	    ts.tv_sec = milliseconds / 1000;
-	    ts.tv_nsec = (milliseconds % 1000) * 1000000;
-	    nanosleep(&ts, NULL);
-	#else
-	    if (milliseconds >= 1000)
-	        sleep(milliseconds / 1000);
-	    usleep((milliseconds % 1000) * 1000);
-	#endif
-}
-
 int main(int argc, char** argv) {
 
     if (CheckArgumentCorrectness(argv[1], argv[2]) != 0)
@@ -149,7 +134,6 @@ int main(int argc, char** argv) {
     {
 	    MPI_Abort(MPI_COMM_WORLD, 2);
     }
-
 
     int* solutionsCache = NULL;
     const int targetSolution = strtol(argv[1], NULL, 10);
