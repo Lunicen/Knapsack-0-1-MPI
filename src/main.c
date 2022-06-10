@@ -193,11 +193,11 @@ int main(int argc, char** argv) {
             printf("[%d -> %d] Received %d.\n", status.MPI_SOURCE, worldRank, request);
 
             // Requesting cached function
-            if (status.MPI_TAG < solutionsCached)
+            if (status.MPI_TAG == 0)
             {
-                if (solutionsCache[status.MPI_TAG] != -1)
+                if (solutionsCache[request] != -1)
                 {
-                    const int functionValue = solutionsCache[status.MPI_TAG];
+                    const int functionValue = solutionsCache[request];
 
 	                MPI_Send(&functionValue, 1, MPI_INT, status.MPI_SOURCE, MPI_SUCCESS, MPI_COMM_WORLD);
                     printf("[%d -> %d] Function exist! Sent the result of f(%d) = %d.\n", worldRank, status.MPI_SOURCE, status.MPI_TAG, functionValue);
@@ -265,13 +265,12 @@ int main(int argc, char** argv) {
                     break;
                 }
 
-
                 // Keep requesting the value until it's sent (tag 1 = value is not calculated yet)
 	            int statusTag = 1;
                 while (statusTag != MPI_SUCCESS)
                 {
                     // f(w - w_i)
-	                MPI_Send(&functionValue, 1, MPI_INT, 0, functionValue, MPI_COMM_WORLD);
+	                MPI_Send(&functionValue, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
                     MPI_Recv(&functionValue, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     statusTag = status.MPI_TAG;
@@ -279,7 +278,7 @@ int main(int argc, char** argv) {
                     // If the value isn't calculated yet then delay the request
                     if (statusTag != MPI_SUCCESS)
                     {
-                        SLEEP(DELAY);
+                        //SLEEP(DELAY);
                         printf("[ root ] f(%d) isn't calculated yet! Waiting %d ms\n", functionValue, DELAY);
                     }
                 }
