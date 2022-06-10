@@ -3,26 +3,6 @@
 #include <stdlib.h>
 #include "mpi.h"
 
-#define DELAY 50
-
-#ifdef _WIN32
-//  For Windows (32- and 64-bit)
-#   include <Windows.h>
-#   define SLEEP(milliseconds) Sleep(milliseconds)
-#elif __unix
-//  For linux, OSX, and other unixes
-#   define _POSIX_C_SOURCE 199309L
-#   include <time.h>
-#   define SLEEP(milliseconds) do {\
-        struct timespec ts;\
-        ts.tv_sec = milliseconds / 1000;\
-        ts.tv_nsec = milliseconds % 1000 * 1000;\
-        nanosleep(&ts, NULL);\
-    } while (0)
-#else
-#   error "Unknown system"
-#endif
-
 
 int CheckArgumentCorrectness(char* knapsackCapacity, char* filename)
 {
@@ -200,7 +180,7 @@ int main(int argc, char** argv) {
                     const int functionValue = solutionsCache[request];
 
 	                MPI_Send(&functionValue, 1, MPI_INT, status.MPI_SOURCE, MPI_SUCCESS, MPI_COMM_WORLD);
-                    printf("[%d -> %d] Function exist! Sent the result of f(%d) = %d.\n", worldRank, status.MPI_SOURCE, status.MPI_TAG, functionValue);
+                    printf("[%d -> %d] Function exist! Sent the result of f(%d) = %d.\n", worldRank, status.MPI_SOURCE, request, functionValue);
                 }
                 else
                 {
@@ -274,13 +254,6 @@ int main(int argc, char** argv) {
 
                     MPI_Recv(&functionValue, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     statusTag = status.MPI_TAG;
-
-                    // If the value isn't calculated yet then delay the request
-                    if (statusTag != MPI_SUCCESS)
-                    {
-                        //SLEEP(DELAY);
-                        printf("[ root ] f(%d) isn't calculated yet! Waiting %d ms\n", functionValue, DELAY);
-                    }
                 }
 
                 const int currentValue = functionValue + value;
@@ -296,7 +269,6 @@ int main(int argc, char** argv) {
 	    free(solutionsCache);
     }
 
-    // Finalize the MPI environment.
     MPI_Finalize();
 
     return 0;
