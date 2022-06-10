@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     {
 	    MPI_Abort(MPI_COMM_WORLD, 2);
     }
-
+    
     int* solutionsCache = NULL;
     const int targetSolution = strtol(argv[1], NULL, 10);
 
@@ -222,8 +222,6 @@ int main(int argc, char** argv) {
 			const int shutdown = MPI_SUCCESS;
 			MPI_Send(&shutdown, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
         }
-
-        printf("[ root ] For the %s knapsack capacity the result is %d!\n", argv[1], solutionsCache[targetSolution]);
     }
     else
     {
@@ -232,7 +230,7 @@ int main(int argc, char** argv) {
 
         while (!exit)
 	    {
-		    MPI_Recv(&target, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        	MPI_Recv(&target, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
             // If it was a message to finish, then exit
             if (target == MPI_SUCCESS)
@@ -248,6 +246,12 @@ int main(int argc, char** argv) {
                 const int weight = data[i * 2];  // NOLINT(bugprone-implicit-widening-of-multiplication-result)
                 const int value = data[i * 2 + 1];
                 int functionValue = target - weight;
+
+                // If the next weights exceed the knapsack capacity then skip
+                if (weight > target)
+                {
+                    break;
+                }
 
                 // Keep requesting the value until it's sent (tag 1 = value is not calculated yet)
 	            int statusTag = 1;
