@@ -1,4 +1,3 @@
-// ReSharper disable CppPointerToIntegralConversion
 #include <stdio.h>
 #include <stdlib.h>
 #include "mpi.h"
@@ -251,7 +250,7 @@ int main(int argc, char** argv) {
             int max = 0;
             for (unsigned long long i = 0; i < elementsCount; ++i)
             {
-                const int weight = data[i * 2];  // NOLINT(bugprone-implicit-widening-of-multiplication-result)
+                const int weight = data[i * 2];
                 const int value = data[i * 2 + 1];
                 int functionValue = target - weight;
 
@@ -273,7 +272,7 @@ int main(int argc, char** argv) {
                 }
 
                 const int currentValue = functionValue + value;
-                max = (currentValue > max) ? currentValue : max;
+                max = currentValue > max ? currentValue : max;
             }
             MPI_Send(&max, 1, MPI_INT, 0, target, MPI_COMM_WORLD);
         }
