@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
         }
 
         // Distribute tasks
-        for (int i = 1; i < worldSize && solutionsCached + (i - 1) < targetSolution; ++i)
+        for (int i = 1; i < worldSize && solutionsCached + (i - 1) <= targetSolution; ++i)
         {
 	        const int toCalculate = solutionsCached + (i - 1);
             MPI_Send(&toCalculate, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
@@ -251,6 +251,7 @@ int main(int argc, char** argv) {
                 {
                     break;
                 }
+
 
                 // Keep requesting the value until it's sent (tag 1 = value is not calculated yet)
 	            int statusTag = 1;
