@@ -221,7 +221,7 @@ int main(int argc, char** argv) {
 	            solutionsCache[status.MPI_TAG] = result;
 	            ++solutionsCached;
 
-	            printf("[%d] f(%d) = %d added to cache!\n", worldRank, status.MPI_TAG, result);
+	            printf("[ root ] f(%d) = %d added to cache!\n", status.MPI_TAG, result);
 
 	            if (solutionsCached <= targetSolution)
                 {
@@ -239,7 +239,7 @@ int main(int argc, char** argv) {
 			MPI_Send(&shutdown, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
         }
 
-        printf("[%d] For the %s knapsack capacity the result is %d!\n", worldRank, argv[1], solutionsCache[targetSolution]);
+        printf("[ root ] For the %s knapsack capacity the result is %d!\n", argv[1], solutionsCache[targetSolution]);
     }
     else
     {
@@ -279,7 +279,7 @@ int main(int argc, char** argv) {
                     if (statusTag != MPI_SUCCESS)
                     {
                         SLEEP(DELAY);
-                        printf("[%d] f(%d) isn't calculated yet! Waiting %d ms\n", worldRank, functionValue, DELAY);
+                        printf("[ root ] f(%d) isn't calculated yet! Waiting %d ms\n", functionValue, DELAY);
                     }
                 }
 
