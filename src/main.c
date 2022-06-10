@@ -172,40 +172,40 @@ int main(int argc, char** argv) {
             printf("[%d -> %d] The task %d sent.\n", worldRank, i, toCalculate);
         }
 
-        int result;
+        int request;
         MPI_Status status;
 
         // Request handling loop
         while (solutionsCached <= targetSolution)
 	    {
-            MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            printf("[%d -> %d] Received %d.\n", status.MPI_SOURCE, worldRank, result);
+            MPI_Recv(&request, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            printf("[%d -> %d] Received %d.\n", status.MPI_SOURCE, worldRank, request);
 
             // Requesting cached function
             if (status.MPI_TAG < solutionsCached)
             {
-                const int functionValue = solutionsCache[status.MPI_TAG];
-
-                if (functionValue != -1)
+                if (solutionsCache[status.MPI_TAG] != -1)
                 {
+                    const int functionValue = solutionsCache[status.MPI_TAG];
+
 	                MPI_Send(&functionValue, 1, MPI_INT, status.MPI_SOURCE, MPI_SUCCESS, MPI_COMM_WORLD);
                     printf("[%d -> %d] Function exist! Sent the result of f(%d) = %d.\n", worldRank, status.MPI_SOURCE, status.MPI_TAG, functionValue);
                 }
                 else
                 {
                     // Postpone process if the requested value isn't calculated yet (-1 equals unknown)
-	                MPI_Send(&functionValue, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
-                    printf("[%d -> %d] Delay the request! The %d is not calculated yet.\n", worldRank, status.MPI_SOURCE, functionValue);
+	                MPI_Send(&request, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
+                    printf("[%d -> %d] Delay the request! The %d is not calculated yet.\n", worldRank, status.MPI_SOURCE, request);
                 }
             }
 
             // Finished calculations
             else
             {
-	            solutionsCache[status.MPI_TAG] = result;
+	            solutionsCache[status.MPI_TAG] = request;
 	            ++solutionsCached;
 
-	            printf("[ root ] f(%d) = %d added to cache!\n", status.MPI_TAG, result);
+	            printf("[ root ] f(%d) = %d added to cache!\n", status.MPI_TAG, request);
 
 	            if (solutionsCached <= targetSolution)
                 {
@@ -213,15 +213,14 @@ int main(int argc, char** argv) {
 	                MPI_Send(&toCalculate, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
                     printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, toCalculate);
                 }
+                else
+                {
+	                // Shutdown the process when the algorithm has the final result
+	                const int shutdown = MPI_SUCCESS;
+	                MPI_Send(&shutdown, 1, MPI_INT, status.MPI_SOURCE, MPI_SUCCESS, MPI_COMM_WORLD);
+                }
             }
 	    }
-
-        // Send to other processes message that algorithm has finished successfully
-        for (int i = 1; i < worldSize; ++i)
-		{
-			const int shutdown = MPI_SUCCESS;
-			MPI_Send(&shutdown, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-        }
     }
     else
     {
@@ -247,7 +246,7 @@ int main(int argc, char** argv) {
                 const int value = data[i * 2 + 1];
                 int functionValue = target - weight;
 
-                // If the next weights exceed the knapsack capacity then skip
+                // If the next weights are exceeding the knapsack capacity then skip
                 if (weight > target)
                 {
                     break;
