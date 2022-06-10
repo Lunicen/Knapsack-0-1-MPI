@@ -91,6 +91,8 @@ int main(int argc, char** argv) {
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
+    const double startTime = MPI_Wtime();
+
     int worldSize, worldRank, nameLen;
 	char processorName[MPI_MAX_PROCESSOR_NAME];
 
@@ -227,6 +229,9 @@ int main(int argc, char** argv) {
 	    }
 
         printf("[ root ] The final result: f(%d) = %d\n", targetSolution, solutionsCache[targetSolution]);
+
+        const double endTime = MPI_Wtime();
+        printf("Time elapsed: %f s\n", endTime - startTime);
     }
     else
     {
