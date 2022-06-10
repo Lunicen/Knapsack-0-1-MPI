@@ -115,7 +115,6 @@ int main(int argc, char** argv) {
     }
 
 
-    int solutionsCalculated = 0;
     int* solutionsCache = NULL;
     const int targetSolution = strtol(argv[1], NULL, 10);
 
@@ -129,13 +128,14 @@ int main(int argc, char** argv) {
 	        MPI_Abort(MPI_COMM_WORLD, 3);
 	    }
 
-        // Mark those capacities that cannot fit any item and unknown values
-        for (int i = 0; i < targetSolution + 1; ++i)
+	    // Mark those capacities that cannot fit any item and unknown values
+	    int solutionsCached = 0;
+	    for (int i = 0; i < targetSolution + 1; ++i)
         {
             if (i < data[0])
             {
             	solutionsCache[i] = 0;
-                ++solutionsCalculated;
+                ++solutionsCached;
             }
             else
             {
@@ -144,10 +144,9 @@ int main(int argc, char** argv) {
         }
 
         // Distribute tasks
-
-        for (int i = 1; i < worldSize; ++i)
+        for (int i = 1; i < worldSize && solutionsCached + (i - 1) < targetSolution; ++i)
         {
-	        const int toCalculate = solutionsCalculated + (i - 1);
+	        const int toCalculate = solutionsCached + (i - 1);
             MPI_Send(&toCalculate, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
 
             printf("[%d -> %d] The task %d sent.\n", worldRank, i, toCalculate);
@@ -156,13 +155,14 @@ int main(int argc, char** argv) {
         int result;
         MPI_Status status;
 
-        while (solutionsCalculated <= targetSolution)
+        // Request handling loop
+        while (solutionsCached <= targetSolution)
 	    {
             MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             printf("[%d -> %d] Received %d.\n", status.MPI_SOURCE, worldRank, result);
 
             // Requesting cached function
-            if (status.MPI_TAG < solutionsCalculated)
+            if (status.MPI_TAG < solutionsCached)
             {
                 const int functionValue = solutionsCache[status.MPI_TAG];
 
@@ -183,13 +183,13 @@ int main(int argc, char** argv) {
             else
             {
 	            solutionsCache[status.MPI_TAG] = result;
-	            ++solutionsCalculated;
+	            ++solutionsCached;
 
 	            printf("f(%d) = %d added to cache!\n", status.MPI_TAG, result);
 
-	            if (solutionsCalculated <= targetSolution)
+	            if (solutionsCached <= targetSolution)
                 {
-                    const int toCalculate = solutionsCalculated;
+                    const int toCalculate = solutionsCached;
 	                MPI_Send(&toCalculate, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
                     printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, toCalculate);
                 }
