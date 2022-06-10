@@ -3,6 +3,27 @@
 #include <stdlib.h>
 #include "mpi.h"
 
+#define DELAY 50
+
+#ifdef _WIN32
+//  For Windows (32- and 64-bit)
+#   include <Windows.h>
+#   define SLEEP(milliseconds) Sleep(milliseconds)
+#elif __unix
+//  For linux, OSX, and other unixes
+#   define _POSIX_C_SOURCE 199309L
+#   include <time.h>
+#   define SLEEP(milliseconds) do {\
+        struct timespec ts;\
+        ts.tv_sec = milliseconds / 1000;\
+        ts.tv_nsec = milliseconds % 1000 * 1000;\
+        nanosleep(&ts, NULL);\
+    } while (0)
+#else
+#   error "Unknown system"
+#endif
+
+
 int CheckArgumentCorrectness(char* knapsackCapacity, char* filename)
 {
 	if (knapsackCapacity == NULL)
@@ -78,6 +99,21 @@ int* LoadDataFromFile(char* filename, unsigned long long* amount)
     *amount /= 2;
 
     return data;
+}
+
+void sleep_ms(int milliseconds) { // cross-platform sleep function
+	#ifdef WIN32
+	    Sleep(milliseconds);
+	#elif _POSIX_C_SOURCE >= 199309L
+	    struct timespec ts;
+	    ts.tv_sec = milliseconds / 1000;
+	    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+	    nanosleep(&ts, NULL);
+	#else
+	    if (milliseconds >= 1000)
+	        sleep(milliseconds / 1000);
+	    usleep((milliseconds % 1000) * 1000);
+	#endif
 }
 
 int main(int argc, char** argv) {
@@ -185,7 +221,7 @@ int main(int argc, char** argv) {
 	            solutionsCache[status.MPI_TAG] = result;
 	            ++solutionsCached;
 
-	            printf("f(%d) = %d added to cache!\n", status.MPI_TAG, result);
+	            printf("[%d] f(%d) = %d added to cache!\n", worldRank, status.MPI_TAG, result);
 
 	            if (solutionsCached <= targetSolution)
                 {
@@ -202,6 +238,8 @@ int main(int argc, char** argv) {
 			const int shutdown = MPI_SUCCESS;
 			MPI_Send(&shutdown, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
         }
+
+        printf("[%d] For the %s knapsack capacity the result is %d!\n", worldRank, argv[1], solutionsCache[targetSolution]);
     }
     else
     {
@@ -236,6 +274,13 @@ int main(int argc, char** argv) {
 
                     MPI_Recv(&functionValue, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     statusTag = status.MPI_TAG;
+
+                    // If the value isn't calculated yet then delay the request
+                    if (statusTag != MPI_SUCCESS)
+                    {
+                        SLEEP(DELAY);
+                        printf("[%d] f(%d) isn't calculated yet! Waiting %d ms\n", worldRank, functionValue, DELAY);
+                    }
                 }
 
                 const int currentValue = functionValue + value;
@@ -244,11 +289,6 @@ int main(int argc, char** argv) {
 
             MPI_Send(&max, 1, MPI_INT, 0, target, MPI_COMM_WORLD);
         }
-    }
-
-    if (worldRank == 0)
-    {
-	    printf("For the %s knapsack capacity the result is %d!\n", argv[1], solutionsCache[targetSolution]);
     }
 
     free(data);
