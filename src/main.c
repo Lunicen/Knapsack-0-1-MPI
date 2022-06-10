@@ -34,10 +34,10 @@ int CheckArgumentCorrectness(char* knapsackCapacity, char* filename)
 
     char* pEnd;
     const int argKnapsackCapacity = _Null_ strtol(knapsackCapacity, &pEnd, 10);
-    if (argKnapsackCapacity < 1)
+    if (argKnapsackCapacity < 0)
     {
 	    fprintf(stderr, 
-            "Wrong knapsack capacity! Expected positive integer, given: %s, which is interpreted as %d\n",
+            "Wrong knapsack capacity! Expected nonnegative integer, given: %s, which is interpreted as %d\n",
             knapsackCapacity,
             argKnapsackCapacity
         );
@@ -164,12 +164,23 @@ int main(int argc, char** argv) {
         }
 
         // Distribute tasks
-        for (int i = 1; i < worldSize && solutionsCached + (i - 1) <= targetSolution; ++i)
+        int process = 1;
+        while (process < worldSize)
         {
-	        const int toCalculate = solutionsCached + (i - 1);
-            MPI_Send(&toCalculate, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
+            int toCalculate = solutionsCached + (process - 1);
+	        if (toCalculate <= targetSolution)
+	        {
+                MPI_Send(&toCalculate, 1, MPI_INT, process, 1, MPI_COMM_WORLD);
+                printf("[%d -> %d] The task %d sent.\n", worldRank, process, toCalculate);
+	        }
+            else
+            {
+                // Shutdown unused processes
+                toCalculate = MPI_SUCCESS;
+                MPI_Send(&toCalculate, 1, MPI_INT, process, MPI_SUCCESS, MPI_COMM_WORLD);
+            }
 
-            printf("[%d -> %d] The task %d sent.\n", worldRank, i, toCalculate);
+            ++process;
         }
 
         int request;
@@ -221,6 +232,8 @@ int main(int argc, char** argv) {
                 }
             }
 	    }
+
+        printf("[ root ] The final result: f(%d) = %d!\n", targetSolution, solutionsCache[targetSolution]);
     }
     else
     {
