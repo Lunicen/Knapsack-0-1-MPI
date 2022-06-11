@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
 #endif
 
             // Requesting cached function
-            if (status.MPI_TAG == 0)
+            if (status.MPI_TAG != MPI_SUCCESS)
             {
                 if (solutionsCache[request] != -1)
                 {
@@ -277,7 +277,7 @@ int main(int argc, char** argv) {
                 while (statusTag != MPI_SUCCESS)
                 {
                     // f(w - w_i)
-	                MPI_Send(&functionValue, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+	                MPI_Send(&functionValue, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
 
                     MPI_Recv(&functionValue, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     statusTag = status.MPI_TAG;
@@ -286,7 +286,8 @@ int main(int argc, char** argv) {
                 const int currentValue = functionValue + value;
                 max = currentValue > max ? currentValue : max;
             }
-            MPI_Send(&max, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
+
+            MPI_Send(&max, 1, MPI_INT, 0, MPI_SUCCESS, MPI_COMM_WORLD);
         }
     }
 
