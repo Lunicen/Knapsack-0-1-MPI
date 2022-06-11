@@ -117,21 +117,21 @@ int main(int argc, char** argv) {
     {
 	    MPI_Abort(MPI_COMM_WORLD, 2);
     }
-    
-    int* solutionsCache = NULL;
-    const int targetSolution = strtol(argv[1], NULL, 10);
 
     if (worldRank == 0)
     {
-	    solutionsCache = malloc((targetSolution + 1) * sizeof(int));
+        const int targetSolution = strtol(argv[1], NULL, 10);
 
-	    if (solutionsCache == NULL)
+        int* solutionsCache = malloc((targetSolution + 1) * sizeof(int));
+        int* currentlyCalculatedValues = malloc((worldSize - 1) * sizeof(int));
+
+        if (solutionsCache == NULL || currentlyCalculatedValues == NULL)
 	    {
 		    fprintf(stderr, "Failed to allocate memory for calculating process!\n");
 	        MPI_Abort(MPI_COMM_WORLD, 3);
 	    }
 
-	    // Mark those capacities that cannot fit any item and unknown values
+        // Mark those capacities that cannot fit any item and unknown values
 	    int solutionsCached = 0;
 	    for (int i = 0; i < targetSolution + 1; ++i)
         {
@@ -153,6 +153,7 @@ int main(int argc, char** argv) {
             int toCalculate = solutionsCached + (process - 1);
 	        if (toCalculate <= targetSolution)
 	        {
+                currentlyCalculatedValues[process - 1] = toCalculate;
                 MPI_Send(&toCalculate, 1, MPI_INT, process, 1, MPI_COMM_WORLD);
 #if DEBUG
                 printf("[%d -> %d] The task %d sent.\n", worldRank, process, toCalculate);
@@ -204,7 +205,8 @@ int main(int argc, char** argv) {
             // Finished calculations
             else
             {
-	            solutionsCache[status.MPI_TAG] = request;
+                const int rankWithValue = currentlyCalculatedValues[status.MPI_SOURCE - 1];
+	            solutionsCache[rankWithValue] = request;
 	            ++solutionsCached;
 
                 const int nextCalculation = solutionsCached + worldSize - 2;
@@ -214,6 +216,7 @@ int main(int argc, char** argv) {
 
 	            if (nextCalculation <= targetSolution)
                 {
+                    currentlyCalculatedValues[status.MPI_SOURCE - 1] = nextCalculation;
 	                MPI_Send(&nextCalculation, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
 #if DEBUG
                     printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, nextCalculation);
@@ -229,6 +232,9 @@ int main(int argc, char** argv) {
 	    }
 
         printf("[ root ] The final result: f(%d) = %d\n", targetSolution, solutionsCache[targetSolution]);
+
+        free(currentlyCalculatedValues);
+        free(solutionsCache);
 
         const double endTime = MPI_Wtime();
         printf("Time elapsed: %f s\n", endTime - startTime);
@@ -279,15 +285,11 @@ int main(int argc, char** argv) {
                 const int currentValue = functionValue + value;
                 max = currentValue > max ? currentValue : max;
             }
-            MPI_Send(&max, 1, MPI_INT, 0, target, MPI_COMM_WORLD);
+            MPI_Send(&max, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
         }
     }
 
     free(data);
-    if (solutionsCache != NULL)
-    {
-	    free(solutionsCache);
-    }
 
     MPI_Finalize();
 
