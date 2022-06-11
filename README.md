@@ -74,19 +74,19 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    ```bash
    hydra-service -start
    ```
-9.  Type
+9. Type
    ```bash
    mpiexec -register
    ```
-11. Provide the details how to indentify your PC in the MPI network
-12. Clone this repository by using your favourite client software 😉
-13. Open the directory with the cloned project and double click on `.sln` file
+10. Provide the details how to indentify your PC in the MPI network
+11. Clone this repository by using your favourite client software 😉
+12. Open the directory with the cloned project and double click on `.sln` file
 
     *Disclaimer: The project has already configured settings. No need to worry about them. If you want to configure your own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
 
-14. Change the Solution Platform to "x64"
-15. Click ***Build*** > ***Build Solution*** or press F7
-16. You've installed and compiled the project successfully 🎉!
+13. Change the Solution Platform to "x64"
+14. Click ***Build*** > ***Build Solution*** or press F7
+15. You've installed and compiled the project successfully 🎉!
 
 ## Launching application
 
