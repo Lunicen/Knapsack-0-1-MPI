@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include "mpi.h"
 
-#define DEBUG 0
+#define TRACE 0
+#define DEBUG 1
 
 int CheckArgumentCorrectness(char* knapsackCapacity, char* filename)
 {
@@ -106,7 +107,7 @@ int main(int argc, char** argv) {
 		MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-#if DEBUG
+#if TRACE || DEBUG
     printf("%s CPU started with rank %d out of %d processors\n",
            processorName, worldRank, worldSize);
 #endif
@@ -155,7 +156,7 @@ int main(int argc, char** argv) {
 	        {
                 currentlyCalculatedValues[process - 1] = toCalculate;
                 MPI_Send(&toCalculate, 1, MPI_INT, process, 1, MPI_COMM_WORLD);
-#if DEBUG
+#if TRACE
                 printf("[%d -> %d] The task %d sent.\n", worldRank, process, toCalculate);
 #endif
 	        }
@@ -176,7 +177,7 @@ int main(int argc, char** argv) {
         while (solutionsCached <= targetSolution)
 	    {
             MPI_Recv(&request, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-#if DEBUG
+#if TRACE
             printf("[%d -> %d] Received %d.\n", status.MPI_SOURCE, worldRank, request);
 #endif
 
@@ -188,7 +189,7 @@ int main(int argc, char** argv) {
                     const int functionValue = solutionsCache[request];
 
 	                MPI_Send(&functionValue, 1, MPI_INT, status.MPI_SOURCE, MPI_SUCCESS, MPI_COMM_WORLD);
-#if DEBUG
+#if TRACE
                 	printf("[%d -> %d] Function exist! Sent the result of f(%d) = %d.\n", worldRank, status.MPI_SOURCE, request, functionValue);
 #endif
                 }
@@ -196,7 +197,7 @@ int main(int argc, char** argv) {
                 {
                     // Postpone process if the requested value isn't calculated yet (-1 equals unknown)
 	                MPI_Send(&request, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
-#if DEBUG
+#if TRACE
                     printf("[%d -> %d] Delay the request! The %d is not calculated yet.\n", worldRank, status.MPI_SOURCE, request);
 #endif
                 }
@@ -210,15 +211,15 @@ int main(int argc, char** argv) {
 	            ++solutionsCached;
 
                 const int nextCalculation = solutionsCached + worldSize - 2;
-#if DEBUG
-                printf("[ root ] f(%d) = %d added to cache!\n", status.MPI_TAG, request);
+#if TRACE || DEBUG
+                printf("[ root ] f(%d) = %d added to cache!\n", rankWithValue, request);
 #endif
 
 	            if (nextCalculation <= targetSolution)
                 {
                     currentlyCalculatedValues[status.MPI_SOURCE - 1] = nextCalculation;
 	                MPI_Send(&nextCalculation, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
-#if DEBUG
+#if TRACE
                     printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, nextCalculation);
 #endif
                 }
@@ -251,7 +252,7 @@ int main(int argc, char** argv) {
             // If it was a message to finish, then exit
             if (target == MPI_SUCCESS)
             {
-#if DEBUG
+#if TRACE || DEBUG
                 printf("[%d -> %d] Shutting down...\n", status.MPI_SOURCE, worldRank);
 #endif
 	            exit = 1;
