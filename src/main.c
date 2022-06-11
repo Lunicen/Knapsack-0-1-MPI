@@ -3,7 +3,7 @@
 #include "mpi.h"
 
 #define TRACE 0
-#define DEBUG 1
+#define DEBUG 0
 
 int CheckArgumentCorrectness(char* knapsackCapacity, char* filename)
 {
