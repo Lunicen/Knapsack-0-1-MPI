@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include "mpi.h"
 
+// Customize variable type
+// WARNING: Remember to only use the types included in default MPI library!
+#define VAR_TYPE unsigned long
+#define MPI_VAR_TYPE MPI_UNSIGNED_LONG
+
+// Debug options
 #define TRACE 0
 #define DEBUG 0
 
@@ -52,7 +58,7 @@ int CheckForErrors(const int* worldSize)
     return 0;
 }
 
-int* LoadDataFromFile(char* filename, unsigned long long* amount)
+VAR_TYPE* LoadDataFromFile(char* filename, unsigned long long* amount)
 {
     MPI_File file;
     const int code = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
@@ -64,7 +70,7 @@ int* LoadDataFromFile(char* filename, unsigned long long* amount)
     MPI_Offset fileSize;
     MPI_File_get_size(file, &fileSize);
 
-    int* data = malloc(fileSize);
+    VAR_TYPE* data = malloc(fileSize);
     if (data == NULL)
     {
 	    fprintf(stderr, "Failed to allocate memory for calculating process!\n");
@@ -72,7 +78,7 @@ int* LoadDataFromFile(char* filename, unsigned long long* amount)
     }
 
     *amount = fileSize / sizeof(int);
-    MPI_File_read_all(file, data, (int)*amount, MPI_UNSIGNED_LONG, MPI_STATUS_IGNORE);
+    MPI_File_read_all(file, data, (int)*amount, MPI_VAR_TYPE, MPI_STATUS_IGNORE);
     MPI_File_close(&file);
 
     // The list contains each item weight & value.
@@ -113,7 +119,7 @@ int main(int argc, char** argv) {
 #endif
 
     unsigned long long elementsCount;
-    int* data = LoadDataFromFile(argv[2], &elementsCount);
+    VAR_TYPE* data = LoadDataFromFile(argv[2], &elementsCount);
     if (data == NULL)
     {
 	    MPI_Abort(MPI_COMM_WORLD, 2);
@@ -121,10 +127,11 @@ int main(int argc, char** argv) {
 
     if (worldRank == 0)
     {
-        const int targetSolution = strtol(argv[1], NULL, 10);
+        const VAR_TYPE targetSolution = strtol(argv[1], NULL, 10);
+        const VAR_TYPE smallestWeight = data[0];
 
-        int* solutionsCache = malloc((targetSolution + 1) * sizeof(int));
-        int* currentlyCalculatedValues = malloc((worldSize - 1) * sizeof(int));
+        VAR_TYPE* solutionsCache = malloc((targetSolution + 1) * sizeof(VAR_TYPE));
+        VAR_TYPE* currentlyCalculatedValues = malloc((worldSize - 1) * sizeof(VAR_TYPE));
 
         if (solutionsCache == NULL || currentlyCalculatedValues == NULL)
 	    {
@@ -132,73 +139,70 @@ int main(int argc, char** argv) {
 	        MPI_Abort(MPI_COMM_WORLD, 3);
 	    }
 
-        // Mark those capacities that cannot fit any item and unknown values
-	    int solutionsCached = 0;
-	    for (int i = 0; i < targetSolution + 1; ++i)
+        // Skip those capacities that cannot fit any item
+        VAR_TYPE solutionsCached = 0;
+	    for (VAR_TYPE i = 0; i < targetSolution + 1; ++i)
         {
-            if (i < data[0])
+            if (i < smallestWeight)
             {
-            	solutionsCache[i] = 0;
-                ++solutionsCached;
+            	++solutionsCached;
             }
-            else
-            {
-	            solutionsCache[i] = -1;
-            }
+
+	    	solutionsCache[i] = 0;
         }
 
         // Distribute tasks
         int process = 1;
         while (process < worldSize)
         {
-            int toCalculate = solutionsCached + (process - 1);
+            VAR_TYPE toCalculate = solutionsCached + (process - 1);
 	        if (toCalculate <= targetSolution)
 	        {
                 currentlyCalculatedValues[process - 1] = toCalculate;
-                MPI_Send(&toCalculate, 1, MPI_INT, process, 1, MPI_COMM_WORLD);
+                MPI_Send(&toCalculate, 1, MPI_VAR_TYPE, process, 1, MPI_COMM_WORLD);
 #if TRACE
-                printf("[%d -> %d] The task %d sent.\n", worldRank, process, toCalculate);
+                printf("[%d -> %d] The task %lu sent.\n", worldRank, process, toCalculate);
 #endif
 	        }
             else
             {
                 // Shutdown unused processes
                 toCalculate = MPI_SUCCESS;
-                MPI_Send(&toCalculate, 1, MPI_INT, process, MPI_SUCCESS, MPI_COMM_WORLD);
+                MPI_Send(&toCalculate, 1, MPI_VAR_TYPE, process, MPI_SUCCESS, MPI_COMM_WORLD);
             }
 
             ++process;
         }
 
-        int request;
+        VAR_TYPE request;
         MPI_Status status;
 
         // Request handling loop
         while (solutionsCached <= targetSolution)
 	    {
-            MPI_Recv(&request, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Recv(&request, 1, MPI_VAR_TYPE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 #if TRACE
-            printf("[%d -> %d] Received %d.\n", status.MPI_SOURCE, worldRank, request);
+            printf("[%d -> %d] Received %lu.\n", status.MPI_SOURCE, worldRank, request);
 #endif
 
             // Requesting cached function
             if (status.MPI_TAG != MPI_SUCCESS)
             {
-                if (solutionsCache[request] != -1)
+                if (solutionsCache[request] != 0 || request < smallestWeight)
                 {
-                    const int functionValue = solutionsCache[request];
+                    const VAR_TYPE functionValue = solutionsCache[request];
 
-	                MPI_Send(&functionValue, 1, MPI_INT, status.MPI_SOURCE, MPI_SUCCESS, MPI_COMM_WORLD);
+	                MPI_Send(&functionValue, 1, MPI_VAR_TYPE, status.MPI_SOURCE, MPI_SUCCESS, MPI_COMM_WORLD);
 #if TRACE
-                	printf("[%d -> %d] Function exist! Sent the result of f(%d) = %d.\n", worldRank, status.MPI_SOURCE, request, functionValue);
+                	printf("[%d -> %d] Function exist! Sent the result of f(%lu) = %lu.\n", worldRank, status.MPI_SOURCE, request, functionValue);
 #endif
                 }
                 else
                 {
                     // Postpone process if the requested value isn't calculated yet (-1 equals unknown)
-	                MPI_Send(&request, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
+	                MPI_Send(&request, 1, MPI_VAR_TYPE, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
 #if TRACE
-                    printf("[%d -> %d] Delay the request! The %d is not calculated yet.\n", worldRank, status.MPI_SOURCE, request);
+                    printf("[%d -> %d] Delay the request! The %lu is not calculated yet.\n", worldRank, status.MPI_SOURCE, request);
 #endif
                 }
             }
@@ -206,21 +210,21 @@ int main(int argc, char** argv) {
             // Finished calculations
             else
             {
-                const int rankWithValue = currentlyCalculatedValues[status.MPI_SOURCE - 1];
+                const VAR_TYPE rankWithValue = currentlyCalculatedValues[status.MPI_SOURCE - 1];
 	            solutionsCache[rankWithValue] = request;
 	            ++solutionsCached;
 
-                const int nextCalculation = solutionsCached + worldSize - 2;
+                const VAR_TYPE nextCalculation = solutionsCached + worldSize - 2;
 #if TRACE || DEBUG
-                printf("[ root ] f(%d) = %d added to cache!\n", rankWithValue, request);
+                printf("[ root ] f(%lu) = %lu added to cache!\n", rankWithValue, request);
 #endif
 
 	            if (nextCalculation <= targetSolution)
                 {
                     currentlyCalculatedValues[status.MPI_SOURCE - 1] = nextCalculation;
-	                MPI_Send(&nextCalculation, 1, MPI_INT, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
+	                MPI_Send(&nextCalculation, 1, MPI_VAR_TYPE, status.MPI_SOURCE, 1, MPI_COMM_WORLD);
 #if TRACE
-                    printf("[%d -> %d] The task %d sent.\n", worldRank, status.MPI_SOURCE, nextCalculation);
+                    printf("[%d -> %d] The task %lu sent.\n", worldRank, status.MPI_SOURCE, nextCalculation);
 #endif
                 }
                 else
@@ -232,7 +236,7 @@ int main(int argc, char** argv) {
             }
 	    }
 
-        printf("[ root ] The final result: f(%d) = %d\n", targetSolution, solutionsCache[targetSolution]);
+        printf("[ root ] The final result: f(%lu) = %lu\n", targetSolution, solutionsCache[targetSolution]);
 
         free(currentlyCalculatedValues);
         free(solutionsCache);
@@ -242,12 +246,13 @@ int main(int argc, char** argv) {
     }
     else
     {
-        int exit = 0, target;
+		int exit = 0;
+        VAR_TYPE target;
     	MPI_Status status;
 
         while (!exit)
 	    {
-        	MPI_Recv(&target, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        	MPI_Recv(&target, 1, MPI_VAR_TYPE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
             // If it was a message to finish, then exit
             if (target == MPI_SUCCESS)
@@ -259,12 +264,12 @@ int main(int argc, char** argv) {
                 continue;
             }
 
-            int max = 0;
+            VAR_TYPE max = 0;
             for (unsigned long long i = 0; i < elementsCount; ++i)
             {
-                const int weight = data[i * 2];
-                const int value = data[i * 2 + 1];
-                int functionValue = target - weight;
+                const VAR_TYPE weight = data[i * 2];
+                const VAR_TYPE value = data[i * 2 + 1];
+                VAR_TYPE functionValue = target - weight;
 
                 // If the next weights are exceeding the knapsack capacity then skip
                 if (weight > target)
@@ -277,17 +282,17 @@ int main(int argc, char** argv) {
                 while (statusTag != MPI_SUCCESS)
                 {
                     // f(w - w_i)
-	                MPI_Send(&functionValue, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
+	                MPI_Send(&functionValue, 1, MPI_VAR_TYPE, 0, 1, MPI_COMM_WORLD);
 
-                    MPI_Recv(&functionValue, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                    MPI_Recv(&functionValue, 1, MPI_VAR_TYPE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     statusTag = status.MPI_TAG;
                 }
 
-                const int currentValue = functionValue + value;
+                const VAR_TYPE currentValue = functionValue + value;
                 max = currentValue > max ? currentValue : max;
             }
 
-            MPI_Send(&max, 1, MPI_INT, 0, MPI_SUCCESS, MPI_COMM_WORLD);
+            MPI_Send(&max, 1, MPI_VAR_TYPE, 0, MPI_SUCCESS, MPI_COMM_WORLD);
         }
     }
 
