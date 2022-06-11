@@ -93,14 +93,14 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 ### Locally
 1. Click ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
 2. Type:
-```bash
-mpiexec -n <number of processes> <path to the compiled project file> <args>
-```
+   ```bash
+   mpiexec -n <number of processes> <path to the compiled project file> <args>
+   ```
     
     For instance:
-```bash
-mpiexec -n 4 "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
-```
+    ```bash
+    mpiexec -n 4 "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
+    ```
 
     *Info: Without -n parameter the mpiexec will automatically determine the installed cores amount and use all of them*
 
@@ -109,13 +109,13 @@ mpiexec -n 4 "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
 
 1. Click ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
 2. Type:
-```bash
-mpiexec -n <number of processes> -ppn <number of processes per node> -hosts <host1>, <host2>, ..., <hostN> <path to the compiled project file> <args>
-```
+   ```bash
+   mpiexec -n <number of processes> -ppn <number of processes per node> -hosts <host1>, <host2>, ..., <hostN> <path to the compiled project file> <args>
+   ```
     
-    For instance:
-```bash
-mpiexec -n 4 -ppn 4 -hosts DESKTOP-I1VH5RB, DESKTOP-J4A39GC "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
-```
+   For instance:
+   ```bash
+   mpiexec -n 4 -ppn 4 -hosts DESKTOP-I1VH5RB, DESKTOP-J4A39GC "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
+   ```
 
-    *Info: Without -n parameter the mpiexec will automatically determine the installed cores amount and use all of them*
+   *Info: Without -n parameter the mpiexec will automatically determine the installed cores amount and use all of them*
