@@ -16,21 +16,23 @@ The root node (process with rank 0) distributes tasks which consist in determini
 #### Workers
 The other processes wait for a task from the root node. On a given request, each of them computes the result asynchronously. Each node has its own array of items that can be packed (their weights and values).
 
-However, the results of the computed knapsacks are stored in the root node. Therefore, to find out the value of the previously cached result, the a query to the root node is sent. If the result is already calculated, the return message contains the answer. Otherwise, the information returned delays the process because that particular result has not yet been computed.
+However, the results of the computed knapsacks are stored in the root node. Therefore, to find out the value of the previously cached result, a query to the root node is sent. If the result is already calculated, the return message contains the answer. Otherwise, the information returned delays the process because that particular result has not yet been computed.
 
 # Features
-Beside the main computations, there are some small things that might be useful.
+Besides the main computations, some small things might be useful.
 
 - Error handling - if the user specifies wrong parameters, the code is designed to handle such situations and provides the potential fix.
-- Logging modes - the implementation contains two logging modes made for tracking the process of calculations. These ones are:
-  - `TRACE` - prints verbosely every action that has happened (who sent or received message, its contents and response to them)
-  - `DEBUG` - only prints the results of each iteration of the calculated knapsack size
-- Custom types - the implementation does **not** force the user to use the hardcoded variable types (default is unsigned long). To do that, change `VAR_TYPE` macro to the desired one, as well as `MPI_VAR_TYPE`.
+- Logging modes - the implementation contains two logging modes made for tracking the process of calculations. These are:
+  - `TRACE` - prints verbosely every action that has happened (who sent or received the message, its contents and response to them).
+  - `DEBUG` - only prints the results of each iteration of the calculated knapsack size.
+
+   *The reason why the debugging can be set only on the preprocessing stage is to avoid significant performance hit that exists by passing through unused ifs.*
+- Custom types - the implementation does **not** force the user to use the hardcoded variable types (default is unsigned long). To do that, change the `VAR_TYPE` macro to the desired one, as well as `MPI_VAR_TYPE`.
   
-    **WARNING**: Keep in mind that this type has to be defined in MPI standard!
+    **WARNING**: Keep in mind that this type has to be defined by MPI standard!
 
 # Installation
-The provided tutorial was tested on Windows machines and it's **dedicated** purely for systems working on Intel CPUs. However, detailed steps on installation are on the [Intel MPI Library site in the "Get Started" section](https://www.intel.com/content/www/us/en/developer/tools/oneapi/mpi-library.html#gs.2t9kdv:~:text=Documentation-,Get%20Started,-Windows).
+The provided tutorial was tested on Windows machines and it's **dedicated** purely to systems working on Intel CPUs. However, detailed steps on installation are on the [Intel MPI Library site in the "Get Started" section](https://www.intel.com/content/www/us/en/developer/tools/oneapi/mpi-library.html#gs.2t9kdv:~:text=Documentation-,Get%20Started,-Windows).
 
 ## Minimal requirements
 - Systems based on the Intel® 64 architecture
@@ -78,11 +80,11 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    ```bash
    mpiexec -register
    ```
-10. Provide the details how to indentify your PC in the MPI network
+10. Provide the details on how to identify your PC in the MPI network
 11. Clone this repository by using your favourite client software 😉
-12. Open the directory with the cloned project and double click on `.sln` file
+12. Open the directory with the cloned project and double click on the `.sln` file
 
-    *Disclaimer: The project has already configured settings. No need to worry about them. If you want to configure your own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
+    *Disclaimer: The project has already configured settings. No need to worry about them. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
 
 13. Change the Solution Platform to "x64"
 14. Click ***Build*** > ***Build Solution*** or press F7
@@ -102,10 +104,10 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
     mpiexec -n 4 "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
     ```
 
-    *Info: Without -n parameter the mpiexec will automatically determine the installed cores amount and use all of them*
+    *Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
 
 ### In a MPI network
-**Disclaimer**: Run this application **only** in the trusted networks! This operation requires to show up the devices in the LAN, by staying hidden other devices might have problem with estabilishing connection.
+**Disclaimer**: Run this application **only** in the trusted networks! This operation requires showing the devices on the LAN, by staying hidden other devices might have problems with establishing the connection.
 
 1. Click ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
 2. Type:
@@ -118,4 +120,5 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    mpiexec -n 4 -ppn 4 -hosts DESKTOP-I1VH5RB, DESKTOP-J4A39GC "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
    ```
 
-   *Info: Without -n parameter the mpiexec will automatically determine the installed cores amount and use all of them*
+   *Info: Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
+   
