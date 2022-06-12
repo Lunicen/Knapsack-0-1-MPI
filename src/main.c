@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mpi.h"
-
+//BAJOJAJO BAJOJAJO
 // Customize variable type
 // WARNING: Remember to only use the types included in default MPI library!
 #define VAR_TYPE unsigned long
