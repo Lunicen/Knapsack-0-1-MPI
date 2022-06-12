@@ -109,11 +109,13 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 
     *Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
 
-3. Here is the example result 👀 (*with the TRACE option*):
+3. Here is the example result 👀 (*with the DEBUG option*):
+
+    ![Local MPI result](./misc/local-communication.gif)
    
 
 ### In a MPI network
-**Disclaimer**: Run this application **only** in the trusted networks! This operation requires showing the devices on the LAN, by staying hidden other devices might have problems with establishing the connection.
+**Disclaimer**: Intel MPI takes care of Your safety! The communication between hosts is encrypted and machines can only connect to each other through estabilished, secure connection. 
 
 1. Click ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
 2. Type:
@@ -127,8 +129,6 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    ```
 
    *Info: Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
-
-3. Here is the example result 👀 (*with the TRACE option*):
 
 ## Trouble?
 *Typical, annoying with no explanations MPI error...*
@@ -161,3 +161,25 @@ Copy the missing DLL files from the MPI directory.
 If you think that something is messed up on the Intel side, rather with the configuration then simply open one of the Intel® OneAPI Toolkit panel (one of the downloaded toolkits) and reinstall or repair the tools.
 
 After that do the steps detailed in the **Installation** section.
+
+### It still doesn't work 😭
+Okay, okay, calm down. There is one final solution that always works. Compiling and running code using OneAPI tools instead of Visual Studio.
+
+1. Open Command Prompt **as administrator** (cmd)
+2. Initialize environment by running `setvars.bat` script
+   
+   ```bash
+   cd %I_MPI_ONEAPI_ROOT%
+   ./setvars.bat
+   ```
+3. In **the same** (*it's very important*) cmd session go to the project folder
+4. Go to the `src` directory (the one containing the `main.c` file)
+5. Compile the project by typing
+   ```bash
+   mpiicc -o Knapsack.exe main.c
+   ```
+6. If you're getting this kind of result:
+   
+   ![Successful compilation](misc/successful_compilation.png)
+   Then congratulations, you've compiled and executed the project successfully 🎉!
+   *I know it's a poor workaround but hey! It works...*
