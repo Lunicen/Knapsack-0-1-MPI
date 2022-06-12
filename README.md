@@ -141,7 +141,7 @@ If you've encountered some errors, try to run the application using *Visual Stud
 
 The message implies that the executable (not Visual Studio!) was unable to locate the missing DLL. It is a [well-known behaviour](https://stackoverflow.com/a/4953976) when it comes to the DLL files and the workaround is provided below.
 
-There's probability that it happens when the Intel® oneAPI toolkit and the project are installed on separated drives.
+There's a probability that it happens when the Intel® oneAPI toolkit and the project are installed on separated drives.
 
 #### Solution
 Copy the missing DLL files from the MPI directory.
@@ -153,12 +153,12 @@ Copy the missing DLL files from the MPI directory.
    copy "%I_MPI_ONEAPI_ROOT%\bin\release\impi.dll" x64\Release
    ```
 
-   *Disclaimer: Make sure these directories were already created. Otherwise compile the project in both Debug and Release modes.*
+   *Disclaimer: Make sure these directories were already created. Otherwise, compile the project in both Debug and Release modes.*
 
 3. The problem should be fixed now 👷‍♂️
 
 ### It just doesn't work...
-If you think that something is messed up on the Intel side, rather with the configuration then simply open one of the Intel® OneAPI Toolkit panel (one of the downloaded toolkits) and reinstall or repair the tools.
+If you think that something is messed up on the Intel side, rather than with the configuration then simply open one of the Intel® OneAPI Toolkit panels (one of the downloaded toolkits) and reinstall or repair the tools.
 
 After that do the steps detailed in the **Installation** section.
 
@@ -166,7 +166,7 @@ After that do the steps detailed in the **Installation** section.
 Okay, okay, calm down. There is one final solution that always works. Compiling and running code using OneAPI tools instead of Visual Studio.
 
 1. Open Command Prompt **as administrator** (cmd)
-2. Initialize environment by running `setvars.bat` script
+2. Initialize the environment by running the `setvars.bat` script
    
    ```bash
    cd %I_MPI_ONEAPI_ROOT%
