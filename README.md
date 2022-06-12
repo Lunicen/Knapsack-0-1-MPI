@@ -50,6 +50,7 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    - Intel® oneAPI DPC++ Library
    - Intel® oneAPI Threading Building Blocks
    - Intel® oneAPI DPC++/C++ Compiler
+   - Intel® oneAPI Data Analitics Library
    - Intel® oneAPI Math Kernel Library
    - Intel® Integrated Performance Permitives Cryptography
    - Intel® Advisor
@@ -84,12 +85,13 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 
     *Disclaimer: The project has already configured settings. No need to worry about them. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
 
-13. Click ***Project*** > ***(...) Properties***
-14. (*Optional step*) Ensure that everything in the configuration is set properly ([according to the documentation](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html))
-15. Save and close the settings
-16. Change the Solution Platform to "x64"
-17. Click ***Build*** > ***Build Solution*** or press F7
-18. You've installed and compiled the project successfully 🎉!
+13. Click ***Project*** > ***Intel Compiler*** > ***Use Intel oneAPI DPC++/C++ Compiler*** if it's not already in use
+14. Click ***Project*** > ***(...) Properties***
+15. (*Optional step*) Ensure that everything in the configuration is set properly ([according to the documentation](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html))
+16. Save and close the settings
+17. Change the Solution Platform to "x64"
+18. Click ***Build*** > ***Build Solution*** or press F7
+19. You've installed and compiled the project successfully 🎉!
 
 ## Launching application
 
@@ -154,3 +156,8 @@ Copy the missing DLL files from the MPI directory.
    *Disclaimer: Make sure these directories were already created. Otherwise compile the project in both Debug and Release modes.*
 
 3. The problem should be fixed now 👷‍♂️
+
+### It just doesn't work...
+If you think that something is messed up on the Intel side, rather with the configuration then simply open one of the Intel® OneAPI Toolkit panel (one of the downloaded toolkits) and reinstall or repair the tools.
+
+After that do the steps detailed in the **Installation** section.
