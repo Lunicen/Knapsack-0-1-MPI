@@ -62,12 +62,10 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    - Intel® MPI Library
    - Intel® oneAPI DPC++/C++ Compiler & Intel® oneAPI C++ Compiler Classic
 
-    *Disclaimer: The rest of the packages are made mostly for debugging. If you wish to install them then go ahead*
+    *Disclaimer: The rest of the packages are made mostly for debugging and shorter compilation time. If you wish to install them then go ahead*
 
 5. Open Command Prompt **as administrator** (cmd)
 6. Run the `setvars.bat` file located in the MPI installation directory (*by default, C:\Program Files (x86)\Intel\oneAPI*)
-
-    ***Warning**: Do NOT close the Command Prompt after this step or the next 3 steps might not work. If you've closed it already, just repeat this step*
 7. Type
    ```bash
    hydra-service -install
@@ -106,6 +104,9 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 
     *Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
 
+3. Here is the example result 👀 (*with the TRACE option*):
+   
+
 ### In a MPI network
 **Disclaimer**: Run this application **only** in the trusted networks! This operation requires showing the devices on the LAN, by staying hidden other devices might have problems with establishing the connection.
 
@@ -121,4 +122,5 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    ```
 
    *Info: Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
-   
+
+3. Here is the example result 👀 (*with the TRACE option*):
