@@ -64,29 +64,30 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 
     *Disclaimer: The rest of the packages are made mostly for debugging and shorter compilation time. If you wish to install them then go ahead*
 
-5. Open Command Prompt **as administrator** (cmd)
-6. Run the `setvars.bat` file located in the MPI installation directory (*by default, C:\Program Files (x86)\Intel\oneAPI*)
-7. Type
+5. Add MPI bin directory to the PATH system variable (*by default, C:\Program Files (x86)\Intel\oneAPI\mpi\\\<mpi version>\bin*)
+6. Open Command Prompt **as administrator** (cmd)
+7. Run the `setvars.bat` file located in the MPI installation directory (*by default, C:\Program Files (x86)\Intel\oneAPI*)
+8. Type
    ```bash
    hydra-service -install
    ```
-8. Type
+9. Type
    ```bash
    hydra-service -start
    ```
-9. Type
+10. Type
    ```bash
    mpiexec -register
    ```
-10. Provide the details on how to identify your PC in the MPI network
-11. Clone this repository by using your favourite client software 😉
-12. Open the directory with the cloned project and double click on the `.sln` file
+11. Provide the details on how to identify your PC in the MPI network
+12. Clone this repository by using your favourite client software 😉
+13. Open the directory with the cloned project and double click on the `.sln` file
 
     *Disclaimer: The project has already configured settings. No need to worry about them. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
 
-13. Change the Solution Platform to "x64"
-14. Click ***Build*** > ***Build Solution*** or press F7
-15. You've installed and compiled the project successfully 🎉!
+14. Change the Solution Platform to "x64"
+15. Click ***Build*** > ***Build Solution*** or press F7
+16. You've installed and compiled the project successfully 🎉!
 
 ## Launching application
 
