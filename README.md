@@ -64,30 +64,32 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 
     *Disclaimer: The rest of the packages are made mostly for debugging and shorter compilation time. If you wish to install them then go ahead*
 
-5. Add MPI bin directory to the PATH system variable (*by default, C:\Program Files (x86)\Intel\oneAPI\mpi\\\<mpi version>\bin*)
+5. Add bin directories to the PATH system variable:
+   - Path to MPI (*by default, `C:\Program Files (x86)\Intel\oneAPI\mpi\<version>\bin`*)
+   - Path to compiler (*by default, `C:\Program Files (x86)\Intel\oneAPI\compiler\<version>\windows\bin\intel64`*)
 6. Open Command Prompt **as administrator** (cmd)
-7. Run the `setvars.bat` file located in the MPI installation directory (*by default, C:\Program Files (x86)\Intel\oneAPI*)
-8. Type
-   ```bash
-   hydra-service -install
-   ```
-9. Type
-   ```bash
-   hydra-service -start
-   ```
-10. Type
-   ```bash
-   mpiexec -register
-   ```
-11. Provide the details on how to identify your PC in the MPI network
-12. Clone this repository by using your favourite client software 😉
-13. Open the directory with the cloned project and double click on the `.sln` file
+7. Run the `setvars.bat` file located in the MPI installation directory (*by default, `C:\Program Files (x86)\Intel\oneAPI`*)
+8. Install & run hydra service (used for network MPI communication)
+    ```bash
+    hydra-service -install
+    hydra-service -start
+    ```
+9.  Register your device to identify it in the MPI network 
+    ```bash
+    mpiexec -register
+    ```
+10. (*Optional step*) It's highly recommended to restart the PC
+11. Clone this repository by using your favourite client software 😉
+12. Open the directory with the cloned project and double click on the `.sln` file
 
     *Disclaimer: The project has already configured settings. No need to worry about them. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
 
-14. Change the Solution Platform to "x64"
-15. Click ***Build*** > ***Build Solution*** or press F7
-16. You've installed and compiled the project successfully 🎉!
+13. Click ***Project*** > ***(...) Properties***
+14. (*Optional step*) Ensure that everything in the configuration is set properly ([according to the documentation](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html))
+15. Save and close the settings
+16. Change the Solution Platform to "x64"
+17. Click ***Build*** > ***Build Solution*** or press F7
+18. You've installed and compiled the project successfully 🎉!
 
 ## Launching application
 
@@ -125,3 +127,30 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
    *Info: Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
 
 3. Here is the example result 👀 (*with the TRACE option*):
+
+## Trouble?
+*Typical, annoying with no explanations MPI error...*
+![Example error](./misc/error.png)
+
+If you've encountered some errors, try to run the application using *Visual Studio Debugger*. It might alert you about some missing files or bad configuration.
+
+### Missing DLL files
+`The code execution cannot proceed because impi.dll was not found.`
+
+The message implies that the executable (not Visual Studio!) was unable to locate the missing DLL. It is a [well-known behaviour](https://stackoverflow.com/a/4953976) when it comes to the DLL files and the workaround is provided below.
+
+There's probability that it happens when the Intel® oneAPI toolkit and the project are installed on separated drives.
+
+#### Solution
+Copy the missing DLL files from the MPI directory.
+1. In Visual Studio click on ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
+2. Copy these files by typing:
+   
+   ```bash
+   copy "%I_MPI_ONEAPI_ROOT%\bin\debug\impi.dll" x64\Debug
+   copy "%I_MPI_ONEAPI_ROOT%\bin\release\impi.dll" x64\Release
+   ```
+
+   *Disclaimer: Make sure these directories were already created. Otherwise compile the project in both Debug and Release modes.*
+
+3. The problem should be fixed now 👷‍♂️
