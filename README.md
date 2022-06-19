@@ -183,3 +183,7 @@ Okay, okay, calm down. There is one final solution that always works. Compiling 
    ![Successful compilation](misc/successful_compilation.png)
    Then congratulations, you've compiled and executed the project successfully 🎉!
    *I know it's a poor workaround but hey! It works...*
+   
+# Authors
+- Hubert Lewandowski (_RooTender_)
+- Łukasz Zaleski (_lukasz340_)
