@@ -37,64 +37,99 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 ## Minimal requirements
 - Systems based on the Intel® 64 architecture
 - 2 GB RAM (1 GB of memory per core)
-- 4 GB of free hard disk space*
+- 4 GB of free hard disk space
 - Visual Studio (2019/2022 version recommended)
 
-*Beware that the required size excludes the highly recommended (and here used) Intel® OneAPI Base Toolkit (13 GB).
-
 ## Steps (for Windows)
+### Installing
 1. Go to the Intel® oneAPI Base Toolkit download site ([link](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html))
-2. Install Intel® OneAPI Base Toolkit tools:
+2. Install these Intel® OneAPI Base Toolkit tools (3.3 GB):
    - Intel® DPC++ Compatibility Tool
    - Intel® Distribution for GDB
    - Intel® oneAPI DPC++ Library
    - Intel® oneAPI Threading Building Blocks
    - Intel® oneAPI DPC++/C++ Compiler
-   - Intel® oneAPI Data Analitics Library
-   - Intel® oneAPI Math Kernel Library
-   - Intel® Integrated Performance Permitives Cryptography
-   - Intel® Advisor
-   - Intel® VTune(TM) Profiler
+
+   ![Installing oneAPI Base Toolkit](misc/InstallingBaseToolkit.gif)
   
-    *Disclaimer: It's **highly** recommended to install these tools in the default path. The custom one might lead to issues*
+   *Disclaimer: It's **highly** recommended to install the tools in the default path. The custom one might lead to issues*
 
 3. Go to the Intel® oneAPI HPC Toolkit download site ([link](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit-download.html))
-4. Install Intel® OneAPI HPC Toolkit tools:
+4. Install Intel® OneAPI HPC Toolkit tools (115 MB):
    - Intel® MPI Library
    - Intel® oneAPI DPC++/C++ Compiler & Intel® oneAPI C++ Compiler Classic
+
+   ![Installing oneAPI HPC Toolkit](misc/InstallingHPCToolkit.gif)
 
     *Disclaimer: The rest of the packages are made mostly for debugging and shorter compilation time. If you wish to install them then go ahead*
 
 5. Add bin directories to the PATH system variable:
    - Path to MPI (*by default, `C:\Program Files (x86)\Intel\oneAPI\mpi\<version>\bin`*)
+  ![MPI Path](misc/PathToBin.png)
+  *If the folder contains `hydra_service.exe` then it's the right one!*
+
    - Path to compiler (*by default, `C:\Program Files (x86)\Intel\oneAPI\compiler\<version>\windows\bin\intel64`*)
-6. Open Command Prompt **as administrator** (cmd)
-7. Run the `setvars.bat` file located in the MPI installation directory (*by default, `C:\Program Files (x86)\Intel\oneAPI`*)
-8. Install & run hydra service (used for network MPI communication)
+  ![Compiler Path](misc/PathToCompiler.png)
+   *If the folder contains `icl.exe` then it's the right one!*
+
+### Configuring
+1. Open Command Prompt **as administrator** (cmd)
+2. Run the `setvars.bat` file located in the MPI installation directory (*by default, `C:\Program Files (x86)\Intel\oneAPI`*)
+   ![Initializing environment variables](misc/InitializingEnvVars.gif)
+
+3. Install & run hydra service (used for network MPI communication)
     ```bash
     hydra-service -install
     hydra-service -start
     ```
-9.  Register your device to identify it in the MPI network 
+   ![Running Hydra Service](misc/InstallingHydraService.gif)
+
+4.  Register your device to identify it in the MPI network 
     ```bash
     mpiexec -register
     ```
-10. (*Optional step*) It's highly recommended to restart the PC
-11. Clone this repository by using your favourite client software 😉
-12. Open the directory with the cloned project and double click on the `.sln` file
+    ![Registering device](misc/ConfiguringHost.gif)
 
-    *Disclaimer: The project has already configured settings. No need to worry about them. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
+5. (*Optional step*) It's highly recommended to restart the PC
 
-13. Click ***Project*** > ***Intel Compiler*** > ***Use Intel oneAPI DPC++/C++ Compiler*** if it's not already in use
-14. Click ***Project*** > ***(...) Properties***
-15. (*Optional step*) Ensure that everything in the configuration is set properly ([according to the documentation](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html))
-16. Save and close the settings
-17. Change the Solution Platform to "x64"
-18. Click ***Build*** > ***Build Solution*** or press F7
-19. You've installed and compiled the project successfully 🎉!
+### Compiling
+Clone this repository by using your favourite client software 😉
+
+#### Manually (*stable, recommended*)
+1. Open Command Prompt **as administrator** (cmd)
+2. Initialize the environment by running the `setvars.bat` script
+   
+   ```bash
+   cd %I_MPI_ONEAPI_ROOT%
+   ./setvars.bat
+   ```
+3. In **the same** (*it's very important*) cmd session go to the project folder
+4. Go to the `src` directory (the one containing the `main.c` file)
+5. Compile the project by typing
+   ```bash
+   mpiicc -o Knapsack.exe main.c
+   ```
+6. If you're getting this kind of result:
+   
+   ![Successful compilation](misc/successful_compilation.png)
+   You've installed and compiled the project successfully 🎉!
+
+#### By using Visual Studio (*unstable, **not** recommended*)
+1.  Open the directory with the cloned project and double click on the `.sln` file
+
+    *Disclaimer: The project has already configured settings. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
+
+2.  Click ***Project*** > ***Intel Compiler*** > ***Use Intel oneAPI DPC++/C++ Compiler*** if it's not already in use. After that your project in the Solution Explorer will have the compiler name in curly brackets
+    ![Compiler name in VS](misc/VSCompilerName.png)
+
+3.  (*Optional step*) Click ***Project*** > ***(...) Properties***
+4.  (*Optional step*) Ensure that everything in the configuration is set properly ([according to the documentation](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html))
+5.  (*Optional step*) Save and close the settings
+6.  Change the Solution Platform to "x64"
+7.  Click ***Build*** > ***Build Solution*** or press F7
+8.  You've installed and compiled the project successfully 🎉!
 
 ## Launching application
-
 ### Locally
 1. Click ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
 2. Type:
@@ -158,31 +193,8 @@ Copy the missing DLL files from the MPI directory.
 3. The problem should be fixed now 👷‍♂️
 
 ### It just doesn't work...
-If you think that something is messed up on the Intel side, rather than with the configuration then simply open one of the Intel® OneAPI Toolkit panels (one of the downloaded toolkits) and reinstall or repair the tools.
+Use the [stable solution](#manually-stable-recommended). This one always works and if it's not, then You either don't have an Intel CPU or you did something wrong during the installation process.
 
-After that do the steps detailed in the **Installation** section.
-
-### It still doesn't work 😭
-Okay, okay, calm down. There is one final solution that always works. Compiling and running code using OneAPI tools instead of Visual Studio.
-
-1. Open Command Prompt **as administrator** (cmd)
-2. Initialize the environment by running the `setvars.bat` script
-   
-   ```bash
-   cd %I_MPI_ONEAPI_ROOT%
-   ./setvars.bat
-   ```
-3. In **the same** (*it's very important*) cmd session go to the project folder
-4. Go to the `src` directory (the one containing the `main.c` file)
-5. Compile the project by typing
-   ```bash
-   mpiicc -o Knapsack.exe main.c
-   ```
-6. If you're getting this kind of result:
-   
-   ![Successful compilation](misc/successful_compilation.png)
-   Then congratulations, you've compiled and executed the project successfully 🎉!
-   *I know it's a poor workaround but hey! It works...*
    
 # Authors
 - Hubert Lewandowski (_RooTender_)
