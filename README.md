@@ -58,23 +58,26 @@ The provided tutorial was tested on Windows machines and it's **dedicated** pure
 4. Install Intel® OneAPI HPC Toolkit tools (115 MB):
    - Intel® MPI Library
    - Intel® oneAPI DPC++/C++ Compiler & Intel® oneAPI C++ Compiler Classic
-
+   
    ![Installing oneAPI HPC Toolkit](misc/InstallingHPCToolkit.gif)
 
     *Disclaimer: The rest of the packages are made mostly for debugging and shorter compilation time. If you wish to install them then go ahead*
 
 5. Add bin directories to the PATH system variable:
    - Path to MPI (*by default, `C:\Program Files (x86)\Intel\oneAPI\mpi\<version>\bin`*)
+  
   ![MPI Path](misc/PathToBin.png)
   *If the folder contains `hydra_service.exe` then it's the right one!*
 
    - Path to compiler (*by default, `C:\Program Files (x86)\Intel\oneAPI\compiler\<version>\windows\bin\intel64`*)
+  
   ![Compiler Path](misc/PathToCompiler.png)
    *If the folder contains `icl.exe` then it's the right one!*
 
 ### Configuring
 1. Open Command Prompt **as administrator** (cmd)
 2. Run the `setvars.bat` file located in the MPI installation directory (*by default, `C:\Program Files (x86)\Intel\oneAPI`*)
+
    ![Initializing environment variables](misc/InitializingEnvVars.gif)
 
 3. Install & run hydra service (used for network MPI communication)
@@ -122,6 +125,7 @@ The reason why this solution is unstable, is the high possibility of compilation
     *Disclaimer: The project has already configured settings. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
 
 2.  Click ***Project*** > ***Intel Compiler*** > ***Use Intel oneAPI DPC++/C++ Compiler*** if it's not already in use. After that your project in the Solution Explorer will have the compiler name in curly brackets
+
     ![Compiler name in VS](misc/VSCompilerName.png)
 
 3.  (*Optional step*) Click ***Project*** > ***(...) Properties***
@@ -140,14 +144,17 @@ The reason why this solution is unstable, is the high possibility of compilation
     **Protip**: Without the `-n` parameter, mpiexec will automatically determine the amount of the installed core and use all of them
 
     - Running using the `TRACE` option
+      
       ![Trace configuration](misc/TraceSettings.png)
       ![Using TRACE result](misc/TraceExample.gif)
 
     - Running using the `DEBUG` option
+      
       ![Debug configuration](misc/DebugSettings.png)
       ![Using DEBUG result](misc/DebugExample.gif)
 
     - Running on default settings
+      
       ![Default configuraion](misc/DefaultSettings.png)
       ![Using default result](misc/DefaultExample.gif)
 
@@ -155,6 +162,7 @@ The reason why this solution is unstable, is the high possibility of compilation
 
 ## Trouble?
 *Typical, annoying with no explanations MPI error...*
+
 ![Example error](./misc/error.png)
 
 It's very common to encounter errors if You've installed the MPI environment on the **other** drive than the project files are located! 
