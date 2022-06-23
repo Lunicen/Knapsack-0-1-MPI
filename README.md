@@ -1,7 +1,7 @@
 # About
 The following project was done to provide an optimal way of solving the 0/1 Knapsack Problem. The implementation uses dynamic programming and parallel computations in the form of multiprocessing.
 
-The project is written in C (for the best performance) and uses the Intel implementation of the MPI standard.
+The project is written in C (for the best performance) and uses the Intel implementation of the MPI standard. Everything is documented in code with comments.
 
 ## How it works?
 ### The problem
@@ -162,6 +162,8 @@ It's very common to encounter errors if You've installed the MPI environment on 
 ### Missing DLL files (for manual comiling)
 `The code execution cannot proceed because impi.dll was not found.`
 
+![impi not found](misc/error_missing_dll.png)
+
 The message implies that the executable was unable to locate the missing DLL. It is a [well-known behaviour](https://stackoverflow.com/a/4953976) when it comes to the DLL files and the workaround is provided below.
 
 There's a probability that it happens when the Intel® oneAPI toolkit and the project are installed on **separated** drives.
@@ -172,10 +174,9 @@ Copy the missing DLL files from the MPI directory.
 2. Copy the missing DLL by typing:
    
    ```bash
-   copy "%I_MPI_ONEAPI_ROOT%\bin\debug\impi.dll" .
+   copy "%I_MPI_ONEAPI_ROOT%\bin\release\impi.dll" .
    ```
-
-   *Disclaimer: Make sure these directories were already created. Otherwise, compile the project in both Debug and Release modes.*
+   ![Copying DLL](misc/CopyingDLL.gif)
 
 3. The problem should be fixed now 👷‍♂️.
 
