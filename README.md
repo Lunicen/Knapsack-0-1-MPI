@@ -100,7 +100,7 @@ Clone this repository by using your favourite client software 😉
 2. Initialize the environment by running the `setvars.bat` script
    
    ```bash
-   cd %I_MPI_ONEAPI_ROOT%
+   cd %ONEAPI_ROOT%
    ./setvars.bat
    ```
 3. In **the same** (*it's very important*) cmd session go to the project folder
@@ -115,6 +115,8 @@ Clone this repository by using your favourite client software 😉
    You've installed and compiled the project successfully 🎉!
 
 #### By using Visual Studio (*unstable, **not** recommended*)
+The reason why this solution is unstable, is the high possibility of compilation failures. The most well-known reason is installing the project on the **other** drive than the MPI is installed.
+
 1.  Open the directory with the cloned project and double click on the `.sln` file
 
     *Disclaimer: The project has already configured settings. If you want to configure your very own project, [here](https://www.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/compiling-and-linking/configuring-a-visual-studio-project.html) is the link to the instruction*
@@ -131,23 +133,24 @@ Clone this repository by using your favourite client software 😉
 
 ## Launching application
 ### Locally
-1. Click ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
-2. Type:
+1. In Command Prompt type:
    ```bash
    mpiexec -n <number of processes> <path to the compiled project file> <args>
    ```
-    
-    For instance:
-    ```bash
-    mpiexec -n 4 "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
-    ```
 
-    *Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
+    **Protip**: Without the `-n` parameter, mpiexec will automatically determine the amount of the installed core and use all of them
 
-3. Here is the example result 👀 (*with the DEBUG option*):
+    - Running using the `TRACE` option
+      ![Using TRACE result](misc/TraceExample.gif)
 
-    ![Local MPI result](./misc/local-communication.gif)
-   
+    - Running using the `DEBUG` option
+      ![Using DEBUG result](misc/DebugExample.gif)
+
+    - Running on default settings
+      ![Using default result](misc/DefaultExample.gif)
+
+2. You've launched the project successfully 🎉!
+
 
 ### In a MPI network
 **Disclaimer**: Intel MPI takes care of Your safety! The communication between hosts is encrypted and machines can only connect to each other through estabilished, secure connection. 
@@ -169,28 +172,40 @@ Clone this repository by using your favourite client software 😉
 *Typical, annoying with no explanations MPI error...*
 ![Example error](./misc/error.png)
 
-If you've encountered some errors, try to run the application using *Visual Studio Debugger*. It might alert you about some missing files or bad configuration.
+It's very common to encounter errors if You've installed the MPI environment on the **other** drive than the project files are located! 
 
-### Missing DLL files
+### Missing DLL files (for manual comiling)
 `The code execution cannot proceed because impi.dll was not found.`
 
-The message implies that the executable (not Visual Studio!) was unable to locate the missing DLL. It is a [well-known behaviour](https://stackoverflow.com/a/4953976) when it comes to the DLL files and the workaround is provided below.
+The message implies that the executable was unable to locate the missing DLL. It is a [well-known behaviour](https://stackoverflow.com/a/4953976) when it comes to the DLL files and the workaround is provided below.
 
 There's a probability that it happens when the Intel® oneAPI toolkit and the project are installed on separated drives.
 
 #### Solution
 Copy the missing DLL files from the MPI directory.
-1. In Visual Studio click on ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
-2. Copy these files by typing:
+1. Open Command Prompt **as administrator** and open open the folder with the `main.c` file
+2. Copy the missing DLL by typing:
    
    ```bash
-   copy "%I_MPI_ONEAPI_ROOT%\bin\debug\impi.dll" x64\Debug
-   copy "%I_MPI_ONEAPI_ROOT%\bin\release\impi.dll" x64\Release
+   copy "%I_MPI_ONEAPI_ROOT%\bin\debug\impi.dll" .
    ```
 
    *Disclaimer: Make sure these directories were already created. Otherwise, compile the project in both Debug and Release modes.*
 
-3. The problem should be fixed now 👷‍♂️
+3. The problem should be fixed now 👷‍♂️.
+
+### Fatal error in PMPI_Init
+![Fatal error](misc/BadEnvInitialization.png)
+The reason why this error happens is the bad initialization of MPI environment variables. It's a very common error that pops right after pasting the DLL in the project directory.
+
+#### Solution
+1. In the same Command Prompt you have opened type:
+   ```bash
+   %ONEAPI_ROOT%\setvars.bat
+   ```
+   ![Initializing environment variables](misc/InitializingEnvVars.gif)
+
+2. The problem should be fixed now 👷‍♂️.
 
 ### It just doesn't work...
 Use the [stable solution](#manually-stable-recommended). This one always works and if it's not, then You either don't have an Intel CPU or you did something wrong during the installation process.
