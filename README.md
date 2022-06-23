@@ -100,19 +100,19 @@ Clone this repository by using your favourite client software 😉
 2. Initialize the environment by running the `setvars.bat` script
    
    ```bash
-   cd %ONEAPI_ROOT%
-   ./setvars.bat
+   "%ONEAPI_ROOT%\setvars.bat"
    ```
+   ![Initializing environment variables](misc/InitializingEnvVars.gif)
+
 3. In **the same** (*it's very important*) cmd session go to the project folder
 4. Go to the `src` directory (the one containing the `main.c` file)
 5. Compile the project by typing
    ```bash
-   mpiicc -o Knapsack.exe main.c
+   mpiicc -o output.exe main.c
    ```
-6. If you're getting this kind of result:
-   
-   ![Successful compilation](misc/successful_compilation.png)
-   You've installed and compiled the project successfully 🎉!
+   ![Successful compilation](misc/Compiling.gif)
+
+1. You've installed and compiled the project successfully 🎉!
 
 #### By using Visual Studio (*unstable, **not** recommended*)
 The reason why this solution is unstable, is the high possibility of compilation failures. The most well-known reason is installing the project on the **other** drive than the MPI is installed.
@@ -132,7 +132,6 @@ The reason why this solution is unstable, is the high possibility of compilation
 8.  You've installed and compiled the project successfully 🎉!
 
 ## Launching application
-### Locally
 1. In Command Prompt type:
    ```bash
    mpiexec -n <number of processes> <path to the compiled project file> <args>
@@ -141,32 +140,18 @@ The reason why this solution is unstable, is the high possibility of compilation
     **Protip**: Without the `-n` parameter, mpiexec will automatically determine the amount of the installed core and use all of them
 
     - Running using the `TRACE` option
+      ![Trace configuration](misc/TraceSettings.png)
       ![Using TRACE result](misc/TraceExample.gif)
 
     - Running using the `DEBUG` option
+      ![Debug configuration](misc/DebugSettings.png)
       ![Using DEBUG result](misc/DebugExample.gif)
 
     - Running on default settings
+      ![Default configuraion](misc/DefaultSettings.png)
       ![Using default result](misc/DefaultExample.gif)
 
 2. You've launched the project successfully 🎉!
-
-
-### In a MPI network
-**Disclaimer**: Intel MPI takes care of Your safety! The communication between hosts is encrypted and machines can only connect to each other through estabilished, secure connection. 
-
-1. Click ***Tools*** > ***Command Line*** > ***Developer Command Prompt***
-2. Type:
-   ```bash
-   mpiexec -n <number of processes> -ppn <number of processes per node> -hosts <host1>, <host2>, ..., <hostN> <path to the compiled project file> <args>
-   ```
-    
-   For instance:
-   ```bash
-   mpiexec -n 4 -ppn 4 -hosts DESKTOP-I1VH5RB, DESKTOP-J4A39GC "x64\Release\Knapsack 0-1 MPI.exe" 1000 "examples\KSP_testCase.bin"
-   ```
-
-   *Info: Without the -n parameter, mpiexec will automatically determine the amount of the installed core and use all of them*
 
 ## Trouble?
 *Typical, annoying with no explanations MPI error...*
@@ -179,7 +164,7 @@ It's very common to encounter errors if You've installed the MPI environment on 
 
 The message implies that the executable was unable to locate the missing DLL. It is a [well-known behaviour](https://stackoverflow.com/a/4953976) when it comes to the DLL files and the workaround is provided below.
 
-There's a probability that it happens when the Intel® oneAPI toolkit and the project are installed on separated drives.
+There's a probability that it happens when the Intel® oneAPI toolkit and the project are installed on **separated** drives.
 
 #### Solution
 Copy the missing DLL files from the MPI directory.
@@ -201,7 +186,7 @@ The reason why this error happens is the bad initialization of MPI environment v
 #### Solution
 1. In the same Command Prompt you have opened type:
    ```bash
-   %ONEAPI_ROOT%\setvars.bat
+   "%ONEAPI_ROOT%\setvars.bat"
    ```
    ![Initializing environment variables](misc/InitializingEnvVars.gif)
 
@@ -210,6 +195,8 @@ The reason why this error happens is the bad initialization of MPI environment v
 ### It just doesn't work...
 Use the [stable solution](#manually-stable-recommended). This one always works and if it's not, then You either don't have an Intel CPU or you did something wrong during the installation process.
 
+### I cannot connect to the other servers!
+Disable the **private** firewall on each node. That's the simpliest solution.
    
 # Authors
 - Hubert Lewandowski (_RooTender_)
