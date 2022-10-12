@@ -209,4 +209,3 @@ Disable the **private** firewall on each node. That's the simpliest solution.
    
 # Authors
 - Hubert Lewandowski (_RooTender_)
-- Łukasz Zaleski (_lukasz340_)
